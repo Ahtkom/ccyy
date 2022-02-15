@@ -1,5 +1,5 @@
-#ifndef CCYY_COLLECTION_H_
-#define CCYY_COLLECTION_H_
+#ifndef CCYY_WRAPPER_COLLECTION_H_
+#define CCYY_WRAPPER_COLLECTION_H_
 
 #include <memory>
 #include <vector>

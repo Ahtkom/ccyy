@@ -1,5 +1,5 @@
-#ifndef CCYY_TESTOBJECT_HPP_
-#define CCYY_TESTOBJECT_HPP_
+#ifndef CCYY_TEST_TESTOBJECT_HPP_
+#define CCYY_TEST_TESTOBJECT_HPP_
 
 #include <iostream>
 #include <string>
@@ -69,6 +69,7 @@ public:
 
     std::string getName() const { return name_; }
     void setName(const std::string &name) { name_ = name; }
+    void print() const { std::cout << getName() << std::endl; }
 
 private:
     std::string name_;

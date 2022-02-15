@@ -5,8 +5,9 @@ include(CTest)
 enable_testing()
 
 include_directories(d:/pmk/project/ccyy/include)
+aux_source_directory(d:/pmk/project/ccyy/src/math/algorithm/heuristic ALL_SRCS)
 
-add_executable(ccyy main.cpp)
+add_executable(ccyy main.cpp ${ALL_SRCS})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

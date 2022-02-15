@@ -2,15 +2,24 @@
 
 #include <iostream>
 
-int main(int, char**)
+
+double my_func(double **x, std::size_t n)
+{
+    double sum = 10;
+    for (std::size_t i = 0; i != n; ++i) {
+        sum += -(*x[i] - 1) * (*x[i] - 1);
+    }
+    return sum;
+}
+
+using namespace std;
+int main(int, char **)
 {
     using namespace ccyy;
 
-    wrapper::Collection<test::TestObject> coll;
+    math::func::MathFunction f(std::function<double(double **, std::size_t)>(my_func), 10);
 
-    coll.push_back(test::TestObject("a"));
-    // coll.push_back(test::TestObject("b"));
-    // coll.push_back(test::TestObject("c"));
+    math::alg::HeuristicSolver hSolver();
 
-    // coll.
+    return 0;
 }
