@@ -6,6 +6,7 @@ enable_testing()
 
 include_directories(d:/pmk/project/ccyy/include)
 aux_source_directory(d:/pmk/project/ccyy/src/math/algorithm/heuristic ALL_SRCS)
+aux_source_directory(d:/pmk/project/ccyy/src/math/algorithm ALL_SRCS)
 
 add_executable(ccyy main.cpp ${ALL_SRCS})
 

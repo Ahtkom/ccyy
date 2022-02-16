@@ -3,6 +3,10 @@
 
 #include <math/algorithm/Solver.h>
 
+#include <iostream>
+#include <math.h>
+#include <time.h>
+
 namespace ccyy {
 namespace math {
 namespace alg {
@@ -10,30 +14,44 @@ namespace alg {
 class SimulatedAnnealingSolver : public Solver
 {
 public:
-    SimulatedAnnealingSolver(const func::MathFunction &func) :
-        Solver(func),
-        curr_val_(0.0),
-        best_val_(-999999.0),
-        curr_sol_(nullptr),
-        best_sol_(nullptr)
-    {}
+    SimulatedAnnealingSolver(
+        const func::MathFunction &func,
+        std::size_t markov_length = 10000,
+        double initial_temperature = 100,
+        double attenuation_factor = 0.99
+    ) : Solver(func),
+        markov_length_(markov_length),
+        temperature_(initial_temperature),
+        attenuation_factor_(attenuation_factor)
+    {
+        srand(time(NULL));
+    }
 
-    ~SimulatedAnnealingSolver();
+    ~SimulatedAnnealingSolver() = default;
 
     void optimize() override;
 
     void log() override;
 
-private:
-    void destroy(double **);
+    double bestVal() const { return best_val_; }
+    
+protected:
+    double getRand() const;
+    double currVal() const { return curr_val_; }
+    double currTemperature() const { return temperature_; }
+    double markovLength() const { return markov_length_; }
 
-    void alloc(double **);
+    bool leaveCurrentRegion() const;
+
+    void updateCurrentSolution() override;
+    void updateTemperature();
 
 private:
-    double curr_val_;
-    double best_val_;
-    double **curr_sol_;
-    double **best_sol_;
+    std::size_t markov_length_;
+
+    double temperature_;
+
+    double attenuation_factor_;
 };
 
 } // namespace alg

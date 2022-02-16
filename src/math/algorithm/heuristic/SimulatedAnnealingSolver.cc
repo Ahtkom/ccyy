@@ -4,58 +4,58 @@ namespace ccyy {
 namespace math {
 namespace alg {
 
-SimulatedAnnealingSolver::~SimulatedAnnealingSolver()
-{
-    destroy(curr_sol_);
-    destroy(best_sol_);
-}
-
-void SimulatedAnnealingSolver::destroy(double **x)
-{
-    auto nVars = Solver::getNumOfVars();
-    if (x != nullptr) {
-        for (std::size_t i = 0; i != nVars; ++i) {
-            if (x[i] != nullptr) {
-                delete x[i];
-                x[i] = nullptr;
-            }
-        }
-        delete[] x;
-        x = nullptr;
-    }
-}
-
-void SimulatedAnnealingSolver::alloc(double **x)
-{
-    auto nVars = Solver::getNumOfVars();
-    if (x == nullptr) {
-        x = new[Solver::getNumOfVars()] double;
-        for (std::size_t i = 0; i != nVars; ++i) {
-            if (x[i] == nullptr) {
-                x[i] = new double(0.0);
-            }
-        }
-    }
-}
-
 void SimulatedAnnealingSolver::optimize()
 {
-    alloc(curr_sol_);
-    alloc(best_sol_);
+    allocCurrentSolution();
+    allocBestSolution();
+    updateCurrentVal();
 
-    while (true) {
-        if (curr_val_ > best_val_) {
-
-        } else {
-            if (true) {
-
+    while (currTemperature() > 1e-3) {
+        for (std::size_t i = 0; i != markovLength(); ++i) {
+            if (currVal() > bestVal()) {
+                updateBestSolution();
+            } else if (leaveCurrentRegion()) {
+                updateBestSolution();
             }
+            updateCurrentSolution();
         }
-        best_sol_ = curr
+        updateTemperature();
+        // std::cout << currTemperature() << " " << bestVal() << std::endl;
     }
-    
-
+    // printResult();
 }
+
+void SimulatedAnnealingSolver::log()
+{
+    std::cout << "I'm the log.\n";
+}
+
+void SimulatedAnnealingSolver::updateCurrentSolution()
+{
+    auto nVars = getNumOfVars();
+    for (std::size_t i = 0; i != nVars; ++i) {
+        *curr_sol_[i] = getRand();
+    }
+    updateCurrentVal();
+}
+
+inline
+double SimulatedAnnealingSolver::getRand() const
+{
+    return rand() % (10000) / (float)(10000);
+}
+
+bool SimulatedAnnealingSolver::leaveCurrentRegion() const
+{
+    return getRand() < exp((currVal() / bestVal() - 1) / currTemperature());
+}
+
+inline
+void SimulatedAnnealingSolver::updateTemperature()
+{
+    temperature_ *= attenuation_factor_;
+}
+
 
 } // namespace alg
 } // namespace math
