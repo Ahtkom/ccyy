@@ -1,5 +1,5 @@
-#ifndef CCYY_TEST_TESTOBJECT_HPP_
-#define CCYY_TEST_TESTOBJECT_HPP_
+#ifndef CCYY_TEST_BASETESTOBJECT_HPP_
+#define CCYY_TEST_BASETESTOBJECT_HPP_
 
 #include <iostream>
 #include <string>
@@ -8,44 +8,44 @@
 namespace ccyy {
 namespace test {
 
-class TestObject
+class BaseTestObject
 {
 public:
-    TestObject(std::string name = "") :
+    BaseTestObject(std::string name = "") :
         name_(name),
         cc_(0),
         mc_(0),
         ca_(0),
         ma_(0)
     {
-        std::cout << "Constructor invoked       --" << name_ << std::endl;
+        std::cout << "Base constructor invoked       --" << name_ << std::endl;
     }
 
-    TestObject(const TestObject &other) :
+    BaseTestObject(const BaseTestObject &other) :
         name_(other.getName()),
         cc_(other.cc_ + 1),
         mc_(other.mc_),
         ca_(other.ca_),
         ma_(other.ma_)
     {
-        std::cout << "Copy constructor invoked  --" << name_
+        std::cout << "Base copy constructor invoked  --" << name_
                   << "_cc" << cc_ << "_mc" << mc_ << std::endl;
     }
 
-    TestObject(TestObject &&other) :
+    BaseTestObject(BaseTestObject &&other) :
         name_(other.getName()),
         cc_(other.cc_),
         mc_(other.mc_ + 1),
         ca_(other.ca_),
         ma_(other.ma_)
     {
-        std::cout << "Move constructor invoked  --" << name_
+        std::cout << "Base move constructor invoked  --" << name_
                   << "_cc" << cc_ << "_mc" << mc_ << std::endl;
     }
 
-    ~TestObject()
+    virtual ~BaseTestObject()
     {
-        std::cout << "Destructor invoked        --" << name_;
+        std::cout << "Base destructor invoked        --" << name_;
         if (cc_ != 0 || mc_ != 0) {
             std::cout << "_cc" << cc_ << "_mc" << mc_ << std::endl;
         } else {
@@ -53,17 +53,17 @@ public:
         }
     }
 
-    TestObject &operator=(const TestObject &other)
+    BaseTestObject &operator=(const BaseTestObject &other)
     {
         setName(other.getName());
-        std::cout << "Copy assignment invoked   --" << name_ << std::endl;
+        std::cout << "Base copy assignment invoked   --" << name_ << std::endl;
         return *this;
     }
 
-    TestObject &operator=(TestObject &&other)
+    BaseTestObject &operator=(BaseTestObject &&other)
     {
         setName(other.getName());
-        std::cout << "Move assignment invoked   --" << name_ << std::endl;
+        std::cout << "Base move assignment invoked   --" << name_ << std::endl;
         return *this;
     }
 

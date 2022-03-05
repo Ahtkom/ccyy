@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <memory>
 
 namespace ccyy {
 namespace wrapper {
@@ -29,16 +30,18 @@ public:
     T *operator[](std::string name);
 
     void printNames() const;
+
     std::string getName(std::size_t index) const;
+    bool existsName(const std::string &name) const;
 
     void push_back(const T &, const std::string &name);
     void push_back(T &&, const std::string &name);
+    void push_back(std::unique_ptr<T> &&, const std::string &name);
     void erase(std::size_t index);
     void eraseByName(const std::string &name);
 
     /// Return -1 if the given name was not found.
     int findIndexByName(const std::string &name) const;
-    bool existsName(const std::string &name) const;
 
     void renameByIndex(std::size_t index, const std::string &nameNew);
     void renameByName(const std::string &name, const std::string &nameNew);
@@ -99,6 +102,16 @@ void NamedCollection<T>::push_back(T &&other, const std::string &name)
         Collection<T>::push_back(std::move(other));
     }
 }
+
+template<typename T>
+void NamedCollection<T>::push_back(std::unique_ptr<T> &&other_ptr, const std::string &name)
+{
+    if (!existsName(name)) {
+        names_.push_back(name);
+        Collection<T>::push_back(std::move(other_ptr));
+    }
+}
+
 
 template<typename T>
 void NamedCollection<T>::erase(std::size_t index)

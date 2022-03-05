@@ -20,6 +20,7 @@ public:
 
     void push_back(const T &);
     void push_back(T &&);
+    void push_back(std::unique_ptr<T> &&);
     void erase(std::size_t index);
 
     void updateByIndex(std::size_t index, const T &other);
@@ -49,6 +50,13 @@ inline
 void Collection<T>::push_back(T &&object)
 {
     data_.push_back(std::unique_ptr<T>(new T(std::move(object))));
+}
+
+template<typename T>
+inline
+void Collection<T>::push_back(std::unique_ptr<T> &&object)
+{
+    data_.push_back(std::move(object));
 }
 
 template<typename T>
