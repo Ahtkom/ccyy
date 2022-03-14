@@ -12,5 +12,6 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src/math/algorithm SRCS)
 
 
 
-# add_executable(ccyy main.cpp ${SRCS})
-add_library(ccyy SHARED ${SRCS})
+add_executable(ccyy main.cpp ${SRCS})
+# add_library(ccyy SHARED ${SRCS})
+# set(CMAKE_CXX_FLAGS_DEBUG "-O3")
