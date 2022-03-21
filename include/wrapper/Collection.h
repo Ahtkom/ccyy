@@ -26,6 +26,8 @@ public:
 
     void push_back(std::unique_ptr<T> &&ptr);
 
+    virtual void reserve(std::size_t n) { data_.reserve(n); }
+
     /// @deprecated Use push_back(std::unique_ptr<T> &&)
     void push_back(const T &other);
 
@@ -33,7 +35,7 @@ public:
     void push_back(T &&other);
 
 protected:
-    void eraseByIndex(std::size_t index);
+    virtual void eraseByIndex(std::size_t index);
 
     void updateByIndex(std::size_t index, std::unique_ptr<T> &&ptr);
 
