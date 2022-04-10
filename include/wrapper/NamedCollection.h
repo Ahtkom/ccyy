@@ -5,10 +5,12 @@
 #include <util/IllegalArgumentException.h>
 
 #include <sstream>
+#include <type_traits>
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <memory>
+#include <iostream>
 
 namespace ccyy {
 namespace wrapper {
@@ -27,52 +29,77 @@ class NamedCollection : public Collection<T>
 public:
     NamedCollection() = default;
 
-    ~NamedCollection() override {}
+    ~NamedCollection() override = default;
 
+    // For name looking-ups.
     using Collection<T>::operator[];
 
-    T *operator[](std::string name);
-
+    /**
+     * @brief A string repr of names.
+     */
     std::string toString() const;
 
     std::string getName(std::size_t index) const;
+
+    T *operator[](std::string name);
+
+    const T *operator[](std::string name) const;
+
+    void push_back(std::unique_ptr<T> &&ptr, const std::string &name);
+
+    // For derived class object
+    template<typename D>
+    void push_back(const D &other, const std::string &name);
+    
+    // For derived class object
+    template<typename D>
+    void push_back(D &&other, const std::string &name);
+
+    void updateByName(const std::string &name, std::unique_ptr<T> &&ptr);
+
+    // For derived class object
+    template<typename D>
+    void updateByName(const std::string &name, const D &other);
+    
+    // For derived class object
+    template<typename D>
+    void updateByName(const std::string &name, D &&other);
+
+    void reserve(std::size_t n) override;
+    
+    void eraseByName(const std::string &name);
 
     bool existsName(const std::string &name) const;
     
     void rename(const std::string &name, const std::string &nameNew);
 
-    void push_back(std::unique_ptr<T> &&ptr, const std::string &name);
-
-    void updateByName(const std::string &name, std::unique_ptr<T> &&ptr);
-
-    void eraseByName(const std::string &name);
-
-    void reserve(std::size_t n) override;
-
-    /// @deprecated Use push_back(std::unique_ptr<T> &&, const std::string &)
-    void push_back(const T &other, const std::string &name);
-    
-    /// @deprecated Use push_back(std::unique_ptr<T> &&, const std::string &)
-    void push_back(T &&other, const std::string &name);
-    
-    /// @deprecated Use updateByName(const std::string &, std::unique_ptr<T> &&)
-    void updateByName(const std::string &name, const T &other);
-    
-    /// @deprecated Use updateByName(const std::string &, std::unique_ptr<T> &&)
-    void updateByName(const std::string &name, T &&other);
-
 protected:
     void eraseByIndex(std::size_t index) override;
 
-    /// Return -1 if the given name was not found.
+    // Return -1 if the given name was not found.
     int findIndexByName(const std::string &name) const;
 
     void renameByIndex(std::size_t index, const std::string &nameNew);
 
 private:
     std::vector<std::string> names_;
+
 };
 
+
+template<typename T>
+std::string NamedCollection<T>::toString() const
+{
+    std::ostringstream s;
+    s << *this;
+    return s.str();
+}
+
+template<typename T>
+std::string NamedCollection<T>::getName(std::size_t index) const
+{
+    return index < Collection<T>::size() ? names_[index] : "";
+}
 
 template<typename T>
 T *NamedCollection<T>::operator[](std::string name)
@@ -84,23 +111,97 @@ T *NamedCollection<T>::operator[](std::string name)
 }
 
 template<typename T>
-inline
-std::string NamedCollection<T>::toString() const
+const T *NamedCollection<T>::operator[](std::string name) const
 {
-    std::ostringstream s;
-    s << *this;
-    return s.str();
+    if (int index = findIndexByName(name) + 1) {
+        return operator[](static_cast<std::size_t>(index - 1));
+    }
+    return nullptr;
 }
 
 template<typename T>
-inline
-std::string NamedCollection<T>::getName(std::size_t index) const
+void NamedCollection<T>::push_back(std::unique_ptr<T> &&ptr, const std::string &name)
 {
-    return index < Collection<T>::size() ? names_[index] : "";
+    if (name.empty()) {
+        throw util::IllegalArgumentException(__PRETTY_FUNCTION__,
+            "Name in NamedCollection cannot be empty!");
+    }
+    if (!existsName(name)) {
+        Collection<T>::push_back(std::move(ptr));
+        names_.push_back(name);
+    }
 }
 
 template<typename T>
-inline
+template<typename D>
+void NamedCollection<T>::push_back(const D &other, const std::string &name)
+{
+    if (name.empty()) {
+        throw util::IllegalArgumentException(__PRETTY_FUNCTION__,
+            "Name in NamedCollection cannot be empty!");
+    }
+    if (!existsName(name)) {
+        Collection<T>::push_back(other);
+        names_.push_back(name);
+    }
+}
+
+template<typename T>
+template<typename D>
+void NamedCollection<T>::push_back(D &&other, const std::string &name)
+{
+    if (name.empty()) {
+        throw util::IllegalArgumentException(__PRETTY_FUNCTION__,
+            "Name in NamedCollection cannot be empty!");
+    }
+    if (!existsName(name)) {
+        Collection<T>::push_back(std::move(other));
+        names_.push_back(name);
+    }
+}
+
+template<typename T>
+void NamedCollection<T>::updateByName(const std::string &name, std::unique_ptr<T> &&ptr)
+{
+    if (int index = findIndexByName(name) + 1) {
+        Collection<T>::updateByIndex(static_cast<std::size_t>(index - 1), std::move(ptr));
+    }
+}
+
+template<typename T>
+template<typename D>
+void NamedCollection<T>::updateByName(const std::string &name, const D &other)
+{
+    if (int index = findIndexByName(name) + 1) {
+        Collection<T>::updateByIndex(static_cast<std::size_t>(index - 1), other);
+    }
+}
+
+template<typename T>
+template<typename D>
+void NamedCollection<T>::updateByName(const std::string &name, D &&other)
+{
+    if (int index = findIndexByName(name) + 1) {
+        Collection<T>::updateByIndex(static_cast<std::size_t>(index - 1), std::move(other));
+    }
+}
+
+template<typename T>
+void NamedCollection<T>::reserve(std::size_t n)
+{
+    Collection<T>::reserve(n);
+    names_.reserve(n);
+}
+
+template<typename T>
+void NamedCollection<T>::eraseByName(const std::string &name)
+{
+    if (int index = findIndexByName(name) + 1) {
+        eraseByIndex(static_cast<std::size_t>(index - 1));
+    }
+}
+
+template<typename T>
 bool NamedCollection<T>::existsName(const std::string &name) const
 {
     return findIndexByName(name) != -1;
@@ -115,78 +216,10 @@ void NamedCollection<T>::rename(const std::string &name, const std::string &name
 }
 
 template<typename T>
-void NamedCollection<T>::push_back(std::unique_ptr<T> &&ptr, const std::string &name)
+void NamedCollection<T>::eraseByIndex(std::size_t index)
 {
-    if (name.empty()) {
-        throw util::IllegalArgumentException("Name in NamedCollection cannot be empty!");
-    }
-    if (!existsName(name)) {
-        names_.push_back(name);
-        Collection<T>::push_back(std::move(ptr));
-    }
-}
-
-template<typename T>
-void NamedCollection<T>::updateByName(const std::string &name, std::unique_ptr<T> &&ptr)
-{
-    if (int index = findIndexByName(name) + 1) {
-        Collection<T>::updateByIndex(static_cast<std::size_t>(index - 1), std::move(ptr));
-    }
-}
-
-template<typename T>
-void NamedCollection<T>::eraseByName(const std::string &name)
-{
-    if (int index = findIndexByName(name) + 1) {
-        eraseByIndex(static_cast<std::size_t>(index - 1));
-    }
-}
-
-template<typename T>
-void NamedCollection<T>::reserve(std::size_t n)
-{
-    names_.reserve(n);
-    Collection<T>::reserve(n);
-}
-
-template<typename T>
-void NamedCollection<T>::push_back(const T &other, const std::string &name)
-{
-    if (name.empty()) {
-        throw util::IllegalArgumentException("Name in NamedCollection cannot be empty!");
-    }
-    if (!existsName(name)) {
-        names_.push_back(name);
-        Collection<T>::push_back(other);
-    }
-}
-
-template<typename T>
-void NamedCollection<T>::push_back(T &&other, const std::string &name)
-{
-    if (name.empty()) {
-        throw util::IllegalArgumentException("Name in NamedCollection cannot be empty!");
-    }
-    if (!existsName(name)) {
-        names_.push_back(name);
-        Collection<T>::push_back(std::move(other));
-    }
-}
-
-template<typename T>
-void NamedCollection<T>::updateByName(const std::string &name, const T &other)
-{
-    if (int index = findIndexByName(name) + 1) {
-        Collection<T>::updateByIndex(static_cast<std::size_t>(index - 1), other);
-    }
-}
-
-template<typename T>
-void NamedCollection<T>::updateByName(const std::string &name, T &&other)
-{
-    if (int index = findIndexByName(name) + 1) {
-        Collection<T>::updateByIndex(static_cast<std::size_t>(index - 1), std::move(other));
-    }
+    Collection<T>::eraseByIndex(index);
+    names_.erase(names_.begin() + index);
 }
 
 template<typename T>
@@ -197,17 +230,11 @@ int NamedCollection<T>::findIndexByName(const std::string &name) const
 }
 
 template<typename T>
-void NamedCollection<T>::eraseByIndex(std::size_t index)
-{
-    names_.erase(names_.begin() + index);
-    Collection<T>::eraseByIndex(index);
-}
-
-template<typename T>
 void NamedCollection<T>::renameByIndex(std::size_t index, const std::string &nameNew)
 {
     if (nameNew.empty()) {
-        throw util::IllegalArgumentException("Name in NamedCollection cannot be empty!");
+        throw util::IllegalArgumentException(__PRETTY_FUNCTION__,
+            "Name in NamedCollection cannot be empty!");
     }
     if (index < Collection<T>::size()) {
         names_[index] = nameNew;

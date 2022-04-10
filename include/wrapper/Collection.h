@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+#include <type_traits>
+#include <assert.h>
 
 namespace ccyy {
 namespace wrapper {
@@ -20,30 +22,36 @@ public:
 
     virtual ~Collection() = default;
 
-    std::size_t size() const { return data_.size(); }
+    std::size_t size() const;
+
+    virtual void reserve(std::size_t n);
 
     T *operator[](std::size_t index);
 
+    const T *operator[](std::size_t index) const;
+
     void push_back(std::unique_ptr<T> &&ptr);
 
-    virtual void reserve(std::size_t n) { data_.reserve(n); }
+    // For derived class object
+    template<typename D>
+    void push_back(const D &other);
 
-    /// @deprecated Use push_back(std::unique_ptr<T> &&)
-    void push_back(const T &other);
-
-    /// @deprecated Use push_back(std::unique_ptr<T> &&)
-    void push_back(T &&other);
+    // For derived class object
+    template<typename D>
+    void push_back(D &&other);
 
 protected:
     virtual void eraseByIndex(std::size_t index);
 
     void updateByIndex(std::size_t index, std::unique_ptr<T> &&ptr);
 
-    /// @deprecated Use updateByIndex(std::size_t, std::unique_ptr<T> &&)
-    void updateByIndex(std::size_t index, const T &other);
+    // For derived class object
+    template<typename D>
+    void updateByIndex(std::size_t index, const D &other);
 
-    /// @deprecated Use updateByIndex(std::size_t, std::unique_ptr<T> &&)
-    void updateByIndex(std::size_t index, T &&other);
+    // For derived class object
+    template<typename D>
+    void updateByIndex(std::size_t index, D &&other);
 
 protected:
     std::vector<std::unique_ptr<T>> data_;
@@ -51,60 +59,86 @@ protected:
 
 
 template<typename T>
-inline
+std::size_t Collection<T>::size() const
+{
+    return data_.size();
+}
+
+template<typename T>
+void Collection<T>::reserve(std::size_t n)
+{
+    data_.reserve(n);
+}
+
+template<typename T>
 T *Collection<T>::operator[](std::size_t index)
 {
     return index < size() ? data_[index].get() : nullptr;
 }
 
 template<typename T>
-inline
-void Collection<T>::push_back(const T &object)
+const T *Collection<T>::operator[](std::size_t index) const
 {
-    data_.push_back(std::make_unique<T>(object));
+    return index < size() ? data_[index].get() : nullptr;
 }
 
 template<typename T>
-inline
-void Collection<T>::push_back(T &&object)
-{
-    data_.push_back(std::unique_ptr<T>(new T(std::move(object))));
-}
-
-template<typename T>
-inline
 void Collection<T>::push_back(std::unique_ptr<T> &&ptr)
 {
     data_.push_back(std::move(ptr));
 }
 
 template<typename T>
-inline
+template<typename D>
+void Collection<T>::push_back(const D &object)
+{
+    static_assert(std::is_base_of<T, D>::value);
+    static_assert(std::is_copy_constructible<D>::value);
+    
+    data_.push_back(std::make_unique<D>(object));
+}
+
+template<typename T>
+template<typename D>
+void Collection<T>::push_back(D &&other)
+{
+    static_assert(std::is_base_of<T, D>::value);
+    static_assert(std::is_move_constructible<D>::value);
+
+    data_.push_back(std::make_unique<D>(std::move(other)));
+}
+
+template<typename T>
 void Collection<T>::eraseByIndex(std::size_t index)
 {
     data_.erase(data_.begin() + index);
 }
 
 template<typename T>
-inline
-void Collection<T>::updateByIndex(std::size_t index, const T &other)
+template<typename D>
+void Collection<T>::updateByIndex(std::size_t index, const D &other)
 {
+    static_assert(std::is_base_of<T, D>::value);
+    static_assert(std::is_copy_constructible<D>::value);
+
     if (index < size()) {
-        data_[index] = std::make_unique<T>(other);
+        data_[index] = std::make_unique<D>(other);
     }
 }
 
 template<typename T>
-inline
-void Collection<T>::updateByIndex(std::size_t index, T &&other)
+template<typename D>
+void Collection<T>::updateByIndex(std::size_t index, D &&other)
 {
+    static_assert(std::is_base_of<T, D>::value);
+    static_assert(std::is_move_constructible<D>::value);
+
     if (index < size()) {
-        data_[index] = std::unique_ptr<T>(new T(std::move(other)));
+        data_[index] = std::make_unique<D>(std::move(other));
     }
 }
 
 template<typename T>
-inline
 void Collection<T>::updateByIndex(std::size_t index, std::unique_ptr<T> &&ptr)
 {
     if (index < size()) {

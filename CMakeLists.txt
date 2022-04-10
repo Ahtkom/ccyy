@@ -7,4 +7,6 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/Debug)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+add_compile_definitions(CCYY_DEBUG)
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
