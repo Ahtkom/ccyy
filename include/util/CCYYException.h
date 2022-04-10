@@ -11,18 +11,15 @@ class CCYYException : public std::runtime_error
 {
 public:
     CCYYException()
-        :
-        std::runtime_error("Unkown error")
+        : std::runtime_error("Unkown error")
     {}
 
     CCYYException(std::string const &msg)
-        :
-        std::runtime_error(msg)
+        : std::runtime_error(msg)
     {}
 
-    CCYYException(std::string const &name, std::string const &msg)
-        :
-        std::runtime_error(name + ": " + msg)
+    CCYYException(std::string const &name, const std::string &func, const std::string &msg)
+        : std::runtime_error(name + ": in \"" + func + "\"\n" + msg)
     {}
 
     ~CCYYException() = default;

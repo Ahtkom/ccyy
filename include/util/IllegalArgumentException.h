@@ -9,14 +9,8 @@ namespace util {
 class IllegalArgumentException : public CCYYException
 {
 public:
-    IllegalArgumentException()
-        :
-        CCYYException("IllegalArgumentException", "")
-    {}
-
-    IllegalArgumentException(const std::string &msg)
-        :
-        CCYYException("IllegalArgumentException", msg)
+    IllegalArgumentException(const std::string &func, const std::string &msg)
+        : CCYYException("IllegalArgumentException", func, msg)
     {}
 
     ~IllegalArgumentException() noexcept override {}

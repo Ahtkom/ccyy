@@ -1,3 +1,3 @@
-#include <test/BaseTestObject.hpp>
-#include <test/DerivedTestObject.hpp>
+#include <test/BaseTestObject.h>
+#include <test/DerivedTestObject.h>
 #include <test/MemoryKiller.h>
