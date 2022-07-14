@@ -33,6 +33,8 @@ public:
 #endif
 
         data_ = other.data_;
+
+        return *this;
     }
 
     BaseTestObject &operator=(const BaseTestObject &other)
@@ -45,6 +47,8 @@ public:
         if (const DerivedTestObject *p = dynamic_cast<const DerivedTestObject *>(&other)) {
             data_ = p->data_;
         }
+
+        return *this;
     }
 
 // private:
